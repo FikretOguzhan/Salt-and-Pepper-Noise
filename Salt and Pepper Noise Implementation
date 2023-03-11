@@ -1,0 +1,44 @@
+def add_salt_pepper_noise(img, p=0.05):
+    """
+    Applies salt and pepper noise to the input image.
+    
+    Args:
+    img (Tensor): Input image to which noise will be applied.
+    p (float): Probability of adding noise to each pixel of the input image. Default: 0.05.
+    
+    Returns:
+    Tensor: Salt and pepper noise added to the input image.
+    """
+    # Copy the input tensor to avoid modifying it in-place
+    noisy_img = img.clone()
+    
+    # Generate a binary mask where '1's indicate salt and pepper noise
+    mask = torch.rand_like(img) < p
+    
+    # Add salt and pepper noise to the image
+    noisy_img[mask] = torch.where(torch.rand_like(img) < 0.5, torch.zeros_like(img), torch.ones_like(img))
+    
+    return noisy_img
+
+
+img_transforms = {
+    "train" :
+    transforms.Compose([
+        transforms.RandomResizedCrop(size = (300, 600), scale = (0.2, 0.8)),
+        transforms.RandomRotation(degrees = (-15, 15)),
+        transforms.ColorJitter(),
+        transforms.RandomHorizontalFlip(),
+        transforms.CenterCrop(size = 299),
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: add_salt_pepper_noise(x, p=0.1)), # Implementation of the Gaussian Noise Function
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])
+    ]),
+    "test" : 
+     transforms.Compose([
+        transforms.Resize(size=299),
+        transforms.CenterCrop(size=299),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+}
